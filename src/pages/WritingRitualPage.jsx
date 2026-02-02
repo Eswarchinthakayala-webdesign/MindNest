@@ -118,8 +118,8 @@ const WritingRitualPage = () => {
             </motion.div>
           )}
 
-          {isActive && (
-            <div className="relative flex items-center justify-center w-80 h-80">
+            {isActive && (
+            <div className="relative flex items-center justify-center w-72 h-72 sm:w-96 sm:h-96">
                 {/* Breathing Circle */}
                 <motion.div
                     animate={{
@@ -142,7 +142,7 @@ const WritingRitualPage = () => {
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 1.2 }}
-                        className="text-2xl font-black uppercase tracking-[0.3em] text-white/90"
+                        className="text-2xl sm:text-3xl font-black uppercase tracking-[0.3em] text-white/90"
                     >
                         {currentPhase.label}
                     </motion.div>
@@ -181,10 +181,10 @@ const WritingRitualPage = () => {
               animate={{ opacity: 1, scale: 1 }}
               className="space-y-8"
             >
-               <div className="w-24 h-24 mx-auto bg-green-500/20 rounded-full flex items-center justify-center mb-6 border border-green-500/30">
-                  <Wind className="w-10 h-10 text-green-400" />
+               <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto bg-green-500/20 rounded-full flex items-center justify-center mb-6 border border-green-500/30">
+                  <Wind className="w-8 h-8 sm:w-10 sm:h-10 text-green-400" />
                </div>
-               <h2 className="text-4xl font-black bg-gradient-to-r from-green-300 to-emerald-500 bg-clip-text text-transparent">
+               <h2 className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-green-300 to-emerald-500 bg-clip-text text-transparent px-4 leading-tight">
                   Mind Clear. Focus On.
                </h2>
                <button
@@ -211,5 +211,6 @@ const WritingRitualPage = () => {
     </div>
   );
 };
+
 
 export default WritingRitualPage;

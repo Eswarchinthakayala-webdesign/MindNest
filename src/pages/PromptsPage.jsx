@@ -26,8 +26,24 @@ const DEEP_THOUGHTS = [
     "Are you being the person you needed when you were younger?",
     "Is it better to be respected or to be liked?",
     "If you could have a 30-minute conversation with your future self, what would you ask?",
-    "What is the difference between living and existing?"
+    "What is the difference between living and existing?",
+    "What is the one thing you would change about the world?",
+    "If you could have dinner with anyone, dead or alive, who would it be?",
+    "What is the most important lesson you have learned in life?",
+    "What is your biggest regret?",
+    "What makes you truly happy?",
+    "What is your definition of success?",
+    "How do you want to be remembered?",
+    "What is the one thing you are most grateful for?",
+    "What is the biggest risk you have ever taken?",
+    "What is the best piece of advice you have ever received?",
+    "What is the one thing you would tell your younger self?",
+    "What is your purpose in life?",
+    "What is the meaning of life?",
+    "What is the one thing you would do if you knew you could not fail?"
   ];
+
+
 
 const MOODS = [
   { label: 'Happy', icon: <Smile className="w-4 h-4" />, color: 'from-amber-400 to-orange-500' },
@@ -70,21 +86,38 @@ const PromptsPage = () => {
       const useZen = Math.random() > 0.5;
       
       if (useZen) {
-        // Using a CORS proxy + zenquotes
-        // Note: For production, you should route this through your own backend to avoid rate limits/CORS issues
-        const res = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://zenquotes.io/api/random'));
+        // Reduced timeout for better UX
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+        
+        const res = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://zenquotes.io/api/random'), {
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        
+        if (!res.ok) throw new Error('Proxy error');
+        
         const data = await res.json();
         const quote = JSON.parse(data.contents)[0];
         setRandomThought({ text: quote.q, author: quote.a });
       } else {
-        const res = await fetch('https://api.adviceslip.com/advice');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+
+        const res = await fetch('https://api.adviceslip.com/advice', {
+             signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        
+        if (!res.ok) throw new Error('API error');
+
         const data = await res.json();
         setRandomThought({ text: data.slip.advice, author: "Daily Advice" });
       }
     } catch (error) {
-      console.error("API Fetch Error:", error);
-      // Fallback
-      setRandomThought({ text: "The journey of a thousand miles begins with one step.", author: "Lao Tzu" });
+      // Silent fallback nicely handles offline/network errors
+      const randomLocal = DEEP_THOUGHTS[Math.floor(Math.random() * DEEP_THOUGHTS.length)];
+      setRandomThought({ text: randomLocal, author: "MindNest" });
     } finally {
       setTimeout(() => setIsRotating(false), 600);
     }
@@ -129,19 +162,19 @@ const PromptsPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="max-w-7xl mx-auto space-y-12 animate-in fade-in duration-700 pb-32">
+      <div className="max-w-7xl overflow-hidden mx-auto space-y-12 animate-in fade-in duration-700 pb-32">
         
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 pt-8 md:pt-0">
             <div className="space-y-4">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs font-bold text-primary uppercase tracking-widest">
                     <Sparkles className="w-3 h-3" />
                     <span>Creative Engine</span>
                 </div>
-                <h1 className="text-5xl md:text-6xl font-black text-white tracking-tighter leading-none">
-                    Prompts <span className="text-stone-600">Library</span>
+                <h1 className="text-2xl sm:text-5xl md:text-6xl font-black text-white tracking-tighter leading-tight break-words max-w-full">
+                    Prompts <span className="text-stone-500">Library</span>
                 </h1>
-                <p className="text-stone-400 font-medium text-lg max-w-lg leading-relaxed">
+                <p className="text-stone-400 font-medium text-sm sm:text-lg max-w-full leading-relaxed break-words">
                     Curated triggers to unlock your subconscious and fuel deep self-reflection.
                 </p>
             </div>
@@ -171,7 +204,7 @@ const PromptsPage = () => {
                 {dailyPrompt ? (
                     <motion.div 
                         whileHover={{ scale: 1.005 }}
-                        className="relative h-full overflow-hidden group rounded-[2.5rem] bg-[#0c0a09] border border-stone-800 p-8 sm:p-12 flex flex-col shadow-2xl"
+                        className="relative h-full overflow-hidden group rounded-[2rem] sm:rounded-[2.5rem] bg-[#0c0a09] border border-stone-800 p-6 sm:p-12 flex flex-col shadow-2xl min-h-[300px] sm:min-h-[350px]"
                     >
                         {/* Dynamic Background */}
                         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-amber-900/10 opacity-50 group-hover:opacity-100 transition-opacity duration-700" />
@@ -190,7 +223,7 @@ const PromptsPage = () => {
                                 </span>
                             </div>
                             
-                            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-[1.1] mb-8 tracking-tight">
+                            <h2 className="text-xl sm:text-4xl md:text-5xl font-black text-white leading-tight mb-8 tracking-tight break-words whitespace-normal max-w-full">
                                 "{dailyPrompt.text}"
                             </h2>
                             
@@ -220,10 +253,10 @@ const PromptsPage = () => {
 
             {/* Random Deep Thought Card */}
             <div className="lg:col-span-5 h-full">
-                <motion.div 
-                    whileHover={{ scale: 1.005 }}
-                    className="relative h-full rounded-[2.5rem] bg-[#0c0a09] border border-stone-800 p-8 sm:p-10 flex flex-col overflow-hidden group shadow-2xl"
-                >
+                    <motion.div 
+                        whileHover={{ scale: 1.005 }}
+                        className="relative h-full rounded-[2rem] sm:rounded-[2.5rem] bg-[#0c0a09] border border-stone-800 p-8 sm:p-10 flex flex-col overflow-hidden group shadow-2xl min-h-[300px]"
+                    >
                     <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
                     <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-black to-transparent z-10" />
                     
@@ -250,7 +283,7 @@ const PromptsPage = () => {
                                     exit={{ opacity: 0, y: -20, filter: 'blur(10px)' }}
                                     className="space-y-6"
                                 >
-                                    <p className="text-2xl sm:text-3xl font-bold text-stone-200 leading-tight">
+                                    <p className="text-lg sm:text-3xl font-bold text-stone-200 leading-tight break-words whitespace-normal max-w-full">
                                         "{randomThought?.text || 'Searching...'}"
                                     </p>
                                     <div className="flex items-center gap-3">
@@ -279,10 +312,10 @@ const PromptsPage = () => {
             <div className="flex items-center gap-2 text-stone-500 text-xs font-black uppercase tracking-widest px-1">
                 <Target className="w-4 h-4" /> Filter by Mood
             </div>
-            <div className="flex items-center gap-3 overflow-x-auto pb-6 scrollbar-hide mask-linear-fade">
+            <div className="flex items-center gap-3 overflow-x-auto pb-6 w-screen scrollbar-hide mask-linear-fade -mx-4 px-4 sm:mx-0 sm:px-0">
                 <button 
                 onClick={() => setSelectedMood('All')}
-                className={`group relative px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all border shrink-0 overflow-hidden ${selectedMood === 'All' ? 'text-black border-white' : 'bg-stone-900/50 border-stone-800 text-stone-400 hover:border-stone-700'}`}
+                className={`group relative px-4 py-2.5 md:px-6 md:py-3 rounded-2xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all border shrink-0 overflow-hidden ${selectedMood === 'All' ? 'text-black border-white' : 'bg-stone-900/50 border-stone-800 text-stone-400 hover:border-stone-700'}`}
                 >
                     {selectedMood === 'All' && <div className="absolute inset-0 bg-white" />}
                     <span className="relative z-10">All</span>
@@ -293,7 +326,7 @@ const PromptsPage = () => {
                         <button 
                             key={mood.label}
                             onClick={() => setSelectedMood(mood.label)}
-                            className={`group relative flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all border shrink-0 overflow-hidden ${isActive ? 'text-white border-transparent' : 'bg-stone-900/50 border-stone-800 text-stone-400 hover:border-stone-700'}`}
+                            className={`group relative flex items-center gap-2 px-4 py-2.5 md:px-6 md:py-3 rounded-2xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all border shrink-0 overflow-hidden ${isActive ? 'text-white border-transparent' : 'bg-stone-900/50 border-stone-800 text-stone-400 hover:border-stone-700'}`}
                         >
                             {isActive && (
                                 <div className={`absolute inset-0 bg-gradient-to-r ${mood.color} opacity-100`} />
@@ -320,7 +353,7 @@ const PromptsPage = () => {
                         transition={{ duration: 0.4, delay: i * 0.05 }}
                         whileHover={{ y: -5 }}
                         onClick={() => usePrompt(prompt.text)}
-                        className="break-inside-avoid relative rounded-[2rem] bg-stone-900/40 border border-stone-800 p-8 cursor-pointer group hover:bg-stone-900/80 hover:border-stone-700 transition-all duration-300"
+                        className="break-inside-avoid relative rounded-[2rem] bg-stone-900/40 border border-stone-800 p-6 sm:p-8 cursor-pointer group hover:bg-stone-900/80 hover:border-stone-700 transition-all duration-300 w-full"
                     >
                         <div className="flex items-center justify-between mb-6">
                             <span className="px-2.5 py-1 rounded-md bg-stone-800/50 border border-stone-700/50 text-[10px] font-black text-stone-400 uppercase tracking-widest group-hover:text-stone-200 transition-colors">
@@ -334,7 +367,7 @@ const PromptsPage = () => {
                             </button>
                         </div>
                         
-                        <p className="text-lg font-bold text-stone-300 leading-relaxed mb-8 group-hover:text-white transition-colors">
+                        <p className="text-lg font-bold text-stone-300 leading-relaxed mb-8 group-hover:text-white transition-colors break-words whitespace-normal">
                             "{prompt.text}"
                         </p>
                         

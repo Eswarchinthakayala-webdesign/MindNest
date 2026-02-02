@@ -65,7 +65,7 @@ const DashboardLayout = ({ children }) => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#050505] text-stone-200 font-sans selection:bg-primary/30 flex">
+    <div className="min-h-screen bg-[#050505] text-stone-200 font-sans selection:bg-primary/30 flex overflow-x-hidden">
       
       {/* Sidebar - Desktop */}
       <aside className="hidden md:flex flex-col w-64 fixed inset-y-0 left-0 border-r border-stone-800 bg-[#050505]/95 backdrop-blur-xl z-50">
