@@ -238,7 +238,7 @@ const JournalPage = () => {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div className="space-y-2">
                 <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight flex items-center gap-4">
-                    <Book className="w-10 h-10 text-primary" />
+                  
                     My Journal
                 </h1>
                 <p className="text-stone-500 font-medium text-lg">

@@ -18,7 +18,9 @@ import {
   Hash,
   Folder,
   Check,
-  Zap
+  Zap,
+  Brain,
+  Sparkles
 } from 'lucide-react';
 import { Slider } from '../components/ui/slider';
 import { toast } from 'sonner';
@@ -36,6 +38,8 @@ import {
   DialogTitle, 
   DialogTrigger 
 } from '@/components/ui/dialog'; 
+import { Mistral } from "@mistralai/mistralai"; 
+
 
 const SUGGESTED_TAGS = ['Personal', 'Work', 'Ideas', 'Gratitude', 'Health', 'Goals', 'Reflection'];
 
@@ -68,6 +72,12 @@ const CreateJournal = () => {
   const [newCollection, setNewCollection] = useState({ title: '', description: '', color: 'bg-blue-500', icon: '📁' });
   const [showCollectionEmojiPicker, setShowCollectionEmojiPicker] = useState(false);
   const [creatingCollection, setCreatingCollection] = useState(false);
+
+  // AI Generation State (Mistral)
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  const [showAIGenerator, setShowAIGenerator] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiTone, setAiTone] = useState('reflective');
 
   useEffect(() => {
     if (paramCollectionId) {
@@ -162,6 +172,62 @@ const CreateJournal = () => {
     setShowCollectionEmojiPicker(false);
   };
 
+  const handleMistralGenerate = async () => {
+    const apiKey = import.meta.env.VITE_MISTRAL_API_KEY;
+
+    if (!apiKey) {
+      toast.error("Missing Mistral API Key. Please add VITE_MISTRAL_API_KEY to your .env file.");
+      return;
+    }
+
+    if (!aiPrompt.trim() && !title.trim()) {
+      toast.error("Please enter a topic or title.");
+      return;
+    }
+
+    setIsGeneratingAI(true);
+    const topic = aiPrompt || title;
+
+    try {
+      const mistral = new Mistral({
+        apiKey: apiKey,
+      });
+
+      const result = await mistral.chat.complete({
+        model: "mistral-small-latest",
+        messages: [
+          {
+             role: "user",
+             content: `You are a supportive journaling assistant with a ${aiTone} tone. 
+             Help me write a journal entry about: "${topic}".
+             Output only Markdown. Include a Title, Reflection Prompts, and a Deep Insight section.
+             Use relevant emojis in titles, headers, and bullet points to make the entry visually engaging.`
+          },
+        ],
+      });
+
+      let generatedText = result.choices?.[0]?.message?.content;
+
+      if (generatedText) {
+        // CLEANUP: Remove ```markdown and ``` wrappings if the AI adds them
+        generatedText = generatedText.replace(/^```markdown\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/, '');
+        
+        setValue(prev => prev ? prev + "\n\n---\n\n" + generatedText : generatedText);
+        toast.success("Insight generated via Mistral AI! 🧠");
+        setShowAIGenerator(false);
+        setAiPrompt('');
+      }
+
+    } catch (error) {
+      console.error("Mistral SDK Error:", error);
+      toast.error("Failed to generate content. Check API Key.");
+    } finally {
+      setIsGeneratingAI(false);
+    }
+  };
+
+
+
   const handleSave = async () => {
     // Validation
     const errors = [];
@@ -242,9 +308,64 @@ const CreateJournal = () => {
                     placeholder="Entry Title..."
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full bg-transparent text-4xl sm:text-5xl font-bold text-white placeholder-stone-700/50 focus:outline-none mb-8 tracking-tight font-display"
+                    className="w-full bg-transparent text-4xl sm:text-5xl font-bold text-white placeholder-stone-700/50 focus:outline-none mb-4 tracking-tight font-display"
                     autoFocus
                  />
+
+                 {/* Mistral AI Generator */}
+                 <div className="flex justify-end mb-6">
+                    <Dialog open={showAIGenerator} onOpenChange={setShowAIGenerator}>
+                        <DialogTrigger asChild>
+                            <button className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-all text-xs font-bold uppercase tracking-widest group">
+                                <Brain className="w-3 h-3 group-hover:scale-110 transition-transform" /> 
+                                Ask Mistral AI
+                            </button>
+                        </DialogTrigger>
+                        <DialogContent className="bg-stone-950 border-stone-800 sm:max-w-md">
+                            <DialogHeader>
+                                <DialogTitle className="flex items-center gap-2 text-white">
+                                    <Brain className="w-5 h-5 text-primary" /> 
+                                    Mistral Writing Partner
+                                </DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-4 py-4">
+                                <p className="text-stone-400 text-sm">
+                                    Describe what's on your mind...
+                                </p>
+                                <input
+                                    type="text"
+                                    placeholder={title || "e.g., Feeling overwhelmed by work..."}
+                                    value={aiPrompt}
+                                    onChange={(e) => setAiPrompt(e.target.value)}
+                                    className="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all mb-4"
+                                />
+
+                                <div className="grid grid-cols-2 gap-2 mb-4">
+                                    {['reflective', 'analytical', 'creative', 'stoic'].map(t => (
+                                        <button
+                                            key={t}
+                                            onClick={() => setAiTone(t)}
+                                            className={`px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all ${aiTone === t ? 'bg-primary text-primary-foreground border-primary' : 'bg-stone-900 border-stone-800 text-stone-500 hover:border-stone-700'}`}
+                                        >
+                                            {t}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <button
+                                    onClick={handleMistralGenerate}
+                                    disabled={isGeneratingAI}
+                                    className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
+                                >
+                                    {isGeneratingAI ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                                    Generate Insight
+                                </button>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
+                 </div>
+
+
 
                  <div className="flex-1" data-color-mode="dark">
                     <MDEditor
