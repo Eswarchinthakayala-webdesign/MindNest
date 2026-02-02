@@ -17,8 +17,10 @@ import {
   Plus,
   Hash,
   Folder,
-  Check
+  Check,
+  Zap
 } from 'lucide-react';
+import { Slider } from '../components/ui/slider';
 import { toast } from 'sonner';
 import {
   Select,
@@ -50,6 +52,7 @@ const CreateJournal = () => {
   const [title, setTitle] = useState('');
   const [value, setValue] = useState("");
   const [mood, setMood] = useState(null); // { emoji: string, labels: string[] }
+  const [intensity, setIntensity] = useState(3);
   
   // Tag State
   const [tags, setTags] = useState([]);
@@ -78,6 +81,14 @@ const CreateJournal = () => {
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
+
+    // Handle prompt from URL
+    const queryParams = new URLSearchParams(window.location.search);
+    const promptParam = queryParams.get('prompt');
+    if (promptParam) {
+        setValue(`## Prompt\n> ${promptParam}\n\n`);
+    }
+
     return () => document.removeEventListener('mousedown', handleClickOutside);
 
   }, [paramCollectionId]);
@@ -171,7 +182,7 @@ const CreateJournal = () => {
         content: { markdown: value }, 
         plain_text: value, 
         collection_id: selectedCollectionId,
-        mood: mood, 
+        mood: mood ? { ...mood, intensity } : null, 
         tags: tags 
       });
       
@@ -361,6 +372,31 @@ const CreateJournal = () => {
                             </span>
                             <Smile className={`w-5 h-5 ${mood ? 'text-primary' : 'opacity-50'}`} />
                          </button>
+
+                         {mood && (
+                            <motion.div 
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                className="mt-6 space-y-4"
+                            >
+                                <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-stone-500">
+                                    <span>Intensity</span>
+                                    <span className="text-primary">{intensity} / 5</span>
+                                </div>
+                                <Slider 
+                                    value={[intensity]} 
+                                    onValueChange={(val) => setIntensity(val[0])} 
+                                    max={5} 
+                                    min={1} 
+                                    step={1}
+                                    className="py-4"
+                                />
+                                <div className="flex justify-between text-[8px] text-stone-600 font-bold uppercase tracking-tighter">
+                                    <span>Mild</span>
+                                    <span>Strong</span>
+                                </div>
+                            </motion.div>
+                         )}
 
                          <AnimatePresence>
                             {showEmojiPicker && (

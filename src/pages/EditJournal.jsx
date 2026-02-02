@@ -16,8 +16,10 @@ import {
   Plus,
   Hash,
   Trash2,
-  AlertTriangle
+  AlertTriangle,
+  Zap
 } from 'lucide-react';
+import { Slider } from '../components/ui/slider';
 import { toast } from 'sonner';
 import supabase from '../utils/supabase';
 import {
@@ -47,6 +49,7 @@ const EditJournal = () => {
   const [title, setTitle] = useState('');
   const [value, setValue] = useState("");
   const [mood, setMood] = useState(null);
+  const [intensity, setIntensity] = useState(3);
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState('');
   const [isTagInputFocused, setIsTagInputFocused] = useState(false);
@@ -108,6 +111,7 @@ const EditJournal = () => {
             label: moodStr
           });
         }
+        setIntensity(journalData.journal_moods[0].intensity || 3);
       }
 
       if (journalData.journal_tags) {
@@ -182,7 +186,7 @@ const EditJournal = () => {
         title,
         content: { markdown: value },
         plain_text: value,
-        mood,
+        mood: mood ? { ...mood, intensity } : null,
         tags
       });
       navigate(`/dashboard/collections/${collectionId}/journal/${journalId}`);
@@ -299,6 +303,31 @@ const EditJournal = () => {
                             </span>
                             <Smile className={`w-4 h-4 ${mood ? 'text-primary' : 'opacity-50'}`} />
                          </button>
+
+                         {mood && (
+                            <motion.div 
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                className="mt-6 space-y-4"
+                            >
+                                <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-stone-500">
+                                    <span>Intensity</span>
+                                    <span className="text-primary">{intensity} / 5</span>
+                                </div>
+                                <Slider 
+                                    value={[intensity]} 
+                                    onValueChange={(val) => setIntensity(val[0])} 
+                                    max={5} 
+                                    min={1} 
+                                    step={1}
+                                    className="py-4"
+                                />
+                                <div className="flex justify-between text-[8px] text-stone-600 font-bold uppercase tracking-tighter">
+                                    <span>Mild</span>
+                                    <span>Strong</span>
+                                </div>
+                            </motion.div>
+                         )}
 
                          <AnimatePresence>
                             {showEmojiPicker && (

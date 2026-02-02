@@ -45,9 +45,17 @@ const JournalCard = ({ journal, onDelete, onClick, onToggleFavorite }) => {
     const moodStr = journal.journal_moods[0].mood;
     const parts = moodStr.split(' ');
     if (parts.length > 1 && parts[0].length <= 4) {
-      return { emoji: parts[0], label: parts.slice(1).join(' ') };
+      return { 
+        emoji: parts[0], 
+        label: parts.slice(1).join(' '),
+        intensity: journal.journal_moods[0].intensity || 3
+      };
     }
-    return { emoji: null, label: moodStr };
+    return { 
+      emoji: null, 
+      label: moodStr,
+      intensity: journal.journal_moods[0].intensity || 3
+    };
   })() : null;
 
   return (
@@ -108,6 +116,14 @@ const JournalCard = ({ journal, onDelete, onClick, onToggleFavorite }) => {
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-stone-800 border border-stone-700/50 text-xs font-bold text-stone-200">
                  {moodData.emoji && <span className="text-sm">{moodData.emoji}</span>}
                  <span className="uppercase tracking-tighter">{moodData.label}</span>
+                 <div className="flex gap-0.5 ml-1">
+                     {[...Array(5)].map((_, i) => (
+                         <div 
+                             key={i} 
+                             className={`w-1 h-1 rounded-full ${i < moodData.intensity ? 'bg-amber-500' : 'bg-stone-700/50'}`} 
+                         />
+                     ))}
+                 </div>
               </span>
           )}
           

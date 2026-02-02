@@ -78,7 +78,15 @@ const JournalCard = ({ journal, onDelete, onClick, onToggleFavorite }) => (
     <div className="flex flex-wrap items-center gap-2 mt-auto shrink-0 z-20 w-full">
         {journal.journal_moods?.[0] && (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-stone-800 text-xs text-stone-300 border border-stone-700/50">
-               <Smile className="w-3 h-3 text-amber-400" /> {journal.journal_moods[0].mood}
+               <Smile className="w-3" /> {journal.journal_moods[0].mood}
+               <div className="flex gap-0.5 ml-1">
+                   {[...Array(5)].map((_, i) => (
+                       <div 
+                           key={i} 
+                           className={`w-1 h-1 rounded-full ${i < (journal.journal_moods[0].intensity || 3) ? 'bg-amber-500' : 'bg-stone-700/50'}`} 
+                       />
+                   ))}
+               </div>
             </span>
         )}
         

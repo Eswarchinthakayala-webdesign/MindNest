@@ -12,6 +12,7 @@ import {
   Loader2,
   BookOpen
 } from 'lucide-react';
+import MDEditor from '@uiw/react-md-editor';
 import { useAuth } from '../context/auth-context';
 import { useJournals } from '../hooks/use-journals';
 import { useCollections } from '../hooks/use-collections';
@@ -39,7 +40,7 @@ const StatCard = ({ title, value, icon: Icon, trend }) => (
   </motion.div>
 );
 
-const JournalCard = ({ title, date, excerpt, mood, color, onClick }) => {
+const JournalCard = ({ title, date, excerpt, mood, intensity, color, onClick }) => {
   const moodEmoji = mood?.split(' ')[0] || '😊';
   const moodLabel = mood?.split(' ').slice(1).join(' ') || 'Good';
 
@@ -59,12 +60,34 @@ const JournalCard = ({ title, date, excerpt, mood, color, onClick }) => {
          </div>
       </div>
       <h4 className="font-bold text-lg text-white mb-2 group-hover:text-primary transition-colors line-clamp-1 tracking-tight">{title}</h4>
-      <p className="text-sm text-stone-400 line-clamp-2 leading-relaxed mb-4">{excerpt}</p>
+      <div className="flex-1 overflow-hidden relative mb-4 h-[4.5rem]" data-color-mode="dark">
+        {/* Gradient Mask for fade effect */}
+        <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#1c1917] to-transparent z-10 pointer-events-none" />
+        
+        <MDEditor.Markdown 
+          source={excerpt?.slice(0, 100) + (excerpt?.length > 100 ? '...' : '')} 
+          style={{ 
+            backgroundColor: 'transparent', 
+            color: '#a8a29e',
+            fontSize: '0.875rem',
+            lineHeight: '1.5'
+          }}
+          className="!bg-transparent text-stone-400"
+        />
+      </div>
       
       <div className="flex items-center gap-2">
           {mood && (
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-stone-800 text-[10px] font-black uppercase tracking-wider text-stone-300 border border-stone-700/50">
                <span className="text-sm">{moodEmoji}</span> {moodLabel}
+               <div className="flex gap-0.5 ml-1">
+                   {[...Array(5)].map((_, i) => (
+                       <div 
+                           key={i} 
+                           className={`w-1 h-1 rounded-full ${i < (intensity || 3) ? 'bg-amber-500' : 'bg-stone-700/50'}`} 
+                       />
+                   ))}
+               </div>
             </span>
           )}
       </div>
@@ -78,8 +101,25 @@ const Dashboard = () => {
   const { journals, loading: journalsLoading } = useJournals();
   const { collections, loading: collectionsLoading } = useCollections();
   const [greeting, setGreeting] = useState('');
+  const [quote, setQuote] = useState({ 
+    text: "The happiness of your life depends upon the quality of your thoughts.", 
+    author: "Marcus Aurelius" 
+  });
 
   useEffect(() => {
+    const fetchQuote = async () => {
+      try {
+        const response = await fetch('https://dummyjson.com/quotes/random');
+        const data = await response.json();
+        if (data && data.quote) {
+          setQuote({ text: data.quote, author: data.author });
+        }
+      } catch (error) {
+        console.error('Error fetching quote:', error);
+      }
+    };
+
+    fetchQuote();
     const hour = new Date().getHours();
     if (hour < 12) setGreeting('Good Morning');
     else if (hour < 18) setGreeting('Good Afternoon');
@@ -199,6 +239,7 @@ const Dashboard = () => {
                        date={j.created_at}
                        excerpt={j.plain_text}
                        mood={j.journal_moods?.[0]?.mood}
+                       intensity={j.journal_moods?.[0]?.intensity}
                        color={j.collections?.color}
                        onClick={() => navigate(`/dashboard/collections/${j.collection_id}/journal/${j.id}`)}
                     />
@@ -272,11 +313,16 @@ const Dashboard = () => {
                     <div className="w-8 h-1 bg-amber-500 rounded-full" />
                     <h3 className="text-[10px] font-black text-amber-500 uppercase tracking-[0.3em]">Moment of Peace</h3>
                   </div>
-                  <p className="text-lg text-stone-200 font-bold leading-tight mb-6 italic group-hover:text-white transition-colors">
-                     "The happiness of your life depends upon the quality of your thoughts."
-                  </p>
+                  <motion.p 
+                    key={quote.text}
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-lg text-stone-200 font-bold leading-tight mb-6 italic group-hover:text-white transition-colors"
+                  >
+                     "{quote.text}"
+                  </motion.p>
                   <div className="flex items-center justify-between border-t border-stone-800 pt-6">
-                    <span className="text-xs text-stone-500 font-bold uppercase tracking-widest">— Marcus Aurelius</span>
+                    <span className="text-xs text-stone-500 font-bold uppercase tracking-widest">— {quote.author}</span>
                     <Smile className="w-5 h-5 text-amber-500/50" />
                   </div>
                </div>

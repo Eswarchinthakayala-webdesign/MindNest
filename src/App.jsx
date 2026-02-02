@@ -11,6 +11,9 @@ import EditJournal from './pages/EditJournal';
 import JournalPage from './pages/JournalPage';
 import ProfilePage from './pages/ProfilePage';
 import AnalyticsPage from './pages/AnalyticsPage';
+import MoodInsights from './pages/MoodInsights';
+import PromptsPage from './pages/PromptsPage';
+import WritingRitualPage from './pages/WritingRitualPage';
 import { AuthProvider } from './context/auth-context';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import './App.css';
@@ -111,7 +114,30 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     )
   },
-
+  {
+    path: "/dashboard/insights",
+    element: (
+      <ProtectedRoute>
+        <MoodInsights />
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "/dashboard/prompts",
+    element: (
+      <ProtectedRoute>
+        <PromptsPage />
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "/dashboard/ritual",
+    element: (
+      <ProtectedRoute>
+        <WritingRitualPage />
+      </ProtectedRoute>
+    )
+  },
 ]);
 
 function App() {

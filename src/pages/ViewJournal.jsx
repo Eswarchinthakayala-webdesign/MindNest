@@ -64,6 +64,7 @@ const ViewJournal = () => {
             data.journal_moods[0].emoji = null;
             data.journal_moods[0].moodLabel = moodStr;
           }
+          data.journal_moods[0].intensity = data.journal_moods[0].intensity || 3;
         }
         setJournal(data);
       } else {
@@ -205,6 +206,7 @@ const ViewJournal = () => {
                                             <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs text-amber-500 font-black bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 rounded-full uppercase tracking-tighter">
                                                 <span className="text-sm leading-none">{journal.journal_moods[0].emoji || '😊'}</span>
                                                 {journal.journal_moods[0].moodLabel || journal.journal_moods[0].mood}
+                                                <span className="ml-1 opacity-50 px-1 border border-amber-500/30 rounded text-xs select-none">{journal.journal_moods[0].intensity}</span>
                                             </span>
                                         )}
                                         {journal.journal_tags?.slice(0, 3).map(tag => (
@@ -334,10 +336,19 @@ const ViewJournal = () => {
                                     </div>
                                     <div>
                                         <p className="text-3xl font-bold text-white capitalize tracking-tight">{journal.journal_moods[0].moodLabel || journal.journal_moods[0].mood}</p>
-                                        <p className="text-stone-500 text-sm mt-1 flex items-center gap-2">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                                            Active Feeling
-                                        </p>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <div className="flex gap-0.5">
+                                                {[...Array(5)].map((_, i) => (
+                                                    <div 
+                                                        key={i} 
+                                                        className={`w-1.5 h-1.5 rounded-full ${i < journal.journal_moods[0].intensity ? 'bg-amber-500' : 'bg-stone-700'}`} 
+                                                    />
+                                                ))}
+                                            </div>
+                                            <span className="text-[10px] font-black text-stone-500 uppercase tracking-widest leading-none">
+                                                Level {journal.journal_moods[0].intensity}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

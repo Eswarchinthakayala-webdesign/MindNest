@@ -12,7 +12,10 @@ import {
   Plus,
   Search,
   User,
-  Bell
+  Bell,
+  BrainCircuit,
+  Sparkles,
+  Wind
 } from 'lucide-react';
 import { Logo } from '../components/ui/Logo';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -55,7 +58,10 @@ const DashboardLayout = ({ children }) => {
     { icon: LayoutDashboard, label: 'Overview', href: '/dashboard' },
     { icon: Book, label: 'Journal', href: '/dashboard/journal' },
     { icon: Grid, label: 'Collections', href: '/dashboard/collections' },
+    { icon: Wind, label: 'Focus Mode', href: '/dashboard/ritual' },
     { icon: BarChart2, label: 'Analytics', href: '/dashboard/analytics' },
+    { icon: BrainCircuit, label: 'Insights', href: '/dashboard/insights' },
+    { icon: Sparkles, label: 'Prompts', href: '/dashboard/prompts' },
   ];
 
   return (
